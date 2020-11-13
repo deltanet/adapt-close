@@ -4,7 +4,7 @@ define([
 
   var CloseComponentView = Backbone.View.extend({
 
-    className: 'close-component',
+    className: 'close',
 
     events: {
       'click .js-close-btn': 'closeModule'
@@ -16,6 +16,8 @@ define([
       this.listenTo(this.model, 'change:_isComplete', this.onComponentComplete);
       this.listenTo(Adapt.course, 'change:_isComplete', this.checkCompletion);
       this.listenTo(Adapt, 'assessment:complete', this.onAssessmentComplete);
+
+      this.listenToOnce(Adapt, 'remove', this.removeListeners);
 
       this.render();
     },
@@ -40,6 +42,8 @@ define([
       this.componentCompletionMet = false;
       this.completionCriteriaMet = false;
       this.assessmentCriteriaMet = false;
+
+      this.onscreenTriggered = false;
 
       _.defer(function () {
         this.postRender();
@@ -139,8 +143,8 @@ define([
       var isOnscreenY = measurements.percentFromTop < 50 && measurements.percentFromTop > 0;
       var isOnscreenX = measurements.percentInviewHorizontal == 100;
       // Check for element coming on screen
-      if (visible && isOnscreenY && isOnscreenX) {
-        $('.' + this.model.get('_id')).off('onscreen');
+      if (visible && isOnscreenY && isOnscreenX && !this.onscreenTriggered) {
+        this.onscreenTriggered = true;
         this.onCompletion();
       }
     },
@@ -149,6 +153,10 @@ define([
       _.delay(function () {
         Adapt.trigger('close:checkCompletion');
       }.bind(this), 500);
+    },
+
+    removeListeners: function() {
+      $('.' + this.model.get('_id')).off('onscreen');
     }
 
   });
