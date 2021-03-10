@@ -37,7 +37,7 @@ define([
       // Add data
       $(this.el).html(template(data)).appendTo('.' + this.model.get('_id') + ' > .component__inner' + ' > .extensions');
 
-      this.$('.close-inner').hide();
+      this.$('.close__inner').hide();
 
       this.componentCompletionMet = false;
       this.completionCriteriaMet = false;
@@ -135,7 +135,7 @@ define([
 
       if (!criteriaMet) return;
 
-      this.$('.close-inner').show();
+      this.$('.close__inner').show();
     },
 
     onscreen: function (event, measurements) {
