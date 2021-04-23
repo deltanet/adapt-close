@@ -49,6 +49,24 @@ define([
 			config.browserPromptIfIncomplete = config.browserPromptIfComplete = false;
 
 			top.window.close();
+
+      try {
+        window.close();
+      } catch(e) {
+        console.log('window.close():' + e);
+      }
+
+      try {
+        window.parent.close();
+      } catch(e) {
+        console.log('window.parent.close();' + e);
+      }
+
+      try {
+        window.parent.parent.close();
+      } catch(e) {
+        console.log('window.parent.parent.close();' + e);
+      }
 		}
 
 	});
