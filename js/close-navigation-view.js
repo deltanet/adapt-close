@@ -48,33 +48,7 @@ define([
 			var config = Adapt.course.get("_close");
 			config.browserPromptIfIncomplete = config.browserPromptIfComplete = false;
 
-      var scormWrapper = require('extensions/adapt-contrib-spoor/js/scorm/wrapper');
-      if (scormWrapper) {
-        var scormWrapperInstance = scormWrapper.getInstance();
-        if (scormWrapperInstance.lmsConnected && !scormWrapperInstance.finishCalled) {
-          scormWrapperInstance.finish();
-        }
-      }
-
       top.window.close();
-
-      try {
-        window.close();
-      } catch(e) {
-        console.log('window.close():' + e);
-      }
-
-      try {
-        window.parent.close();
-      } catch(e) {
-        console.log('window.parent.close();' + e);
-      }
-
-      try {
-        window.parent.parent.close();
-      } catch(e) {
-        console.log('window.parent.parent.close();' + e);
-      }
 		}
 
 	});
