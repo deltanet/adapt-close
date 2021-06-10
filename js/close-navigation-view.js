@@ -64,7 +64,7 @@ define([
       }
 
       if (config._button._closeViaLMSFinish) return;
-
+      
       top.window.close();
 		}
 

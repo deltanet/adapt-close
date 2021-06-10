@@ -20,7 +20,7 @@
           "properties": {
             "_close": {
               "type": "object",
-              "legend": "Close",
+              "legend": "Close Button",
               "properties": {
                 "_isEnabled": {
                   "type":"boolean",
