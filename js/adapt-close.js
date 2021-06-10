@@ -1,98 +1,134 @@
 define([
-  'core/js/adapt'
-], function(Adapt) {
+  'core/js/adapt',
+  'core/js/enums/completionStateEnum',
+  './close-navigation-view',
+  './close-component-view',
+], function(Adapt, COMPLETION_STATE, CloseNavigationView, CloseComponentView) {
 
-  var CloseView = Backbone.View.extend({
+	var Close = _.extend({
 
-    initialize: function() {
+		initialize: function() {
+			this.listenToOnce(Adapt, "app:dataReady", this.onDataReady);
+		},
+
+    onDataReady: function() {
+      this.listenTo(Adapt.config, 'change:_activeLanguage', this.onLangChange);
+
+      if (Adapt.course.get("_close") && Adapt.course.get("_close")._isEnabled) {
+        this.setupClose();
+        this.setupListeners();
+      }
+    },
+
+    setupListeners: function() {
       this.listenTo(Adapt, {
-        'navigation:closeButton': this.onCloseButton,
-        'close:confirm': this.onCloseConfirm,
-        'app:languageChanged': this.remove
-      }).render();
+        "close:checkCompletion": this.checkCompletion,
+        "navigationView:postRender": this.loadNavigationView,
+        "componentView:postRender": this.onComponentReady
+      });
+
+      if (this.closeConfig.browserPromptIfIncomplete || this.closeConfig.browserPromptIfComplete) {
+  			$(window).on("beforeunload", _.partial(onBeforeUnload, this.closeConfig));
+  		}
     },
 
-    render: function() {
-      var data = this.model.toJSON();
-      data._globals = Adapt.course.get('_globals');
+    removeListeners: function() {
+      this.stopListening(Adapt, {
+        "close:checkCompletion": this.checkCompletion,
+        "navigationView:postRender": this.loadNavigationView,
+        "componentView:postRender": this.onComponentReady
+      });
 
-      var template = Handlebars.templates.close;
-
-      this.setElement(template(data)).$el.insertAfter($('.js-nav-back-btn'));
+      this.stopListening(Adapt.config, 'change:_activeLanguage', this.onLangChange);
     },
 
-    onCloseButton: function() {
-      var prompt = !Adapt.course.get('_isComplete') ?
-        this.model.get('_notifyPromptIfIncomplete') :
-        this.model.get('_notifyPromptIfComplete');
+    setupClose: function() {
+      this.closeConfig = Adapt.course.get('_close');
+    },
 
-      if (!prompt || !prompt._isEnabled) return Adapt.trigger('close:confirm');
+    loadNavigationView: function(navigationView) {
+      if (!this.closeConfig._button._isEnabled) return;
 
-      Adapt.notify.prompt({
-        title: prompt.title,
-        body: prompt.body,
-        _prompts: [
-          {
-            promptText: prompt.confirm,
-            _callbackEvent: 'close:confirm'
-          },
-          {
-            promptText: prompt.cancel
-          }
-        ]
+      var navigationModel = new Backbone.Model(this.closeConfig._button);
+      new CloseNavigationView({
+        model: navigationModel
       });
     },
 
-    onCloseConfirm: function() {
-      //ensure that the browser prompt doesn't get triggered as well
-      var config = Adapt.course.get('_close');
-      config.browserPromptIfIncomplete = config.browserPromptIfComplete = false;
+    onBeforeUnload: function(config) {
+  		return !Adapt.course.get("_isComplete") ?
+  			config.browserPromptIfIncomplete || undefined :
+  			config.browserPromptIfComplete || undefined;
+  	},
 
-      var scormWrapper = require('extensions/adapt-contrib-spoor/js/scorm/wrapper');
-      if (scormWrapper) {
-        var scormWrapperInstance = scormWrapper.getInstance();
-        if (scormWrapperInstance.lmsConnected && !scormWrapperInstance.finishCalled) {
-          scormWrapperInstance.finish();
+    onComponentReady: function(view) {
+      if (Adapt.course.get("_close") && Adapt.course.get("_close")._isEnabled && view.model.get("_close") && view.model.get("_close")._isEnabled) {
+        // Only render view if it DOESN'T already exist - Work around for assessmentResults component
+        if (!$('.' + view.model.get('_id')).find('.close-component').length) {
+          new CloseComponentView({model:view.model});
         }
       }
+    },
 
-      if (config._button._closeViaLMSFinish) return;
+    checkCompletion: function() {
+      var completionData = this.getCompletionData();
 
-      top.window.close();
+      if (completionData.status === COMPLETION_STATE.INCOMPLETE) {
+        return;
+      }
+
+      Adapt.trigger('tracking:complete', completionData);
+      Adapt.log.debug('tracking:complete', completionData);
+    },
+
+    // Taken from core/js tracking.js
+    getCompletionData: function() {
+      this._config = Adapt.config.get('_completionCriteria');
+
+      if (this._config._requireAssessmentCompleted) {
+        this._assessmentState = Adapt.assessment.getState();
+      }
+
+      var completionData = {
+        status: COMPLETION_STATE.INCOMPLETE,
+        assessment: null
+      };
+
+      // Course complete is required.
+      if (this._config._requireContentCompleted && !Adapt.course.get('_isComplete')) {
+        // INCOMPLETE: course not complete.
+        return completionData;
+      }
+
+      // Assessment completed required.
+      if (this._config._requireAssessmentCompleted) {
+        if (!this._assessmentState || !this._assessmentState.isComplete) {
+          // INCOMPLETE: assessment is not complete.
+          return completionData;
+        }
+
+        // PASSED/FAILED: assessment completed.
+        completionData.status = this._assessmentState.isPass ? COMPLETION_STATE.PASSED : COMPLETION_STATE.FAILED;
+        completionData.assessment = this._assessmentState;
+
+        return completionData;
+      }
+
+      // COMPLETED: criteria met, no assessment requirements.
+      completionData.status = COMPLETION_STATE.COMPLETED;
+
+      return completionData;
+    },
+
+    onLangChange: function() {
+      this.removeListeners();
+      this.listenToOnce(Adapt, "app:dataReady", this.onDataReady);
     }
 
-  });
+  }, Backbone.Events);
 
-  function onBeforeUnload(config) {
-    return !Adapt.course.get('_isComplete') ?
-      config.browserPromptIfIncomplete || undefined :
-      config.browserPromptIfComplete || undefined;
-  }
+  Close.initialize();
 
-  function initialise() {
-    var config = Adapt.course.get('_close');
+  return Close;
 
-    if (!config || !config._isEnabled) return;
-
-    var button = config._button;
-
-    if (button && button._isEnabled) {
-      new CloseView({ model: new Backbone.Model(button) });
-    }
-
-    if (config.browserPromptIfIncomplete || config.browserPromptIfComplete) {
-      $(window).off('beforeunload');// stop spoor from handling beforeunload - if it handles the event first, LMSFinish will get called regardless of what the user selects in the prompt
-      $(window).on('beforeunload.close', _.partial(onBeforeUnload, config));
-    }
-  }
-
-  Adapt.once('adapt:start', function() {
-    initialise();
-
-    Adapt.on('app:languageChanged', function () {
-      $(window).off('beforeunload.close');
-      // have to wait until the navbar is ready
-      Adapt.once('router:location', initialise);
-    });
-  });
 });
