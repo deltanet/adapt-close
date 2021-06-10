@@ -4,6 +4,8 @@
   "_isEnabled": true,
 	"_button": {
 		"_isEnabled": true,
+    "_sendLMSFinish": false,
+    "_closeViaLMSFinish": false,
 		"_notifyPromptIfIncomplete": {
 			"_isEnabled": false,
 			"title": "Confirm close",
@@ -29,6 +31,8 @@
     "_isEnabled": true,
     "_classes": "",
     "_button": {
+      "_sendLMSFinish": false,
+      "_closeViaLMSFinish": false,
       "title": "Close module"
     },
     "_tracking": {
