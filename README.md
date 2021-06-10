@@ -114,7 +114,7 @@ Firefox doesn’t currently support custom messages in its dialogs.
 
 ----------------------------
 
-**Version number:**  3.3.0   
+**Version number:**  3.3.1   
 **Framework versions supported:**  4+    
 **Author / maintainer:** [C&G Kineo](https://github.com/cgkineo/adapt-close) / DeltaNet with [contributors](https://github.com/deltanet/adapt-close/graphs/contributors)     
 **Accessibility support:** Yes  
