@@ -88,6 +88,24 @@ define([
     },
 
     onCloseConfirm: function () {
+      if (this.model.get('_close')._button._sendLMSFinish) {
+
+        try {
+          var scormWrapper = require('extensions/adapt-contrib-spoor/js/scorm/wrapper');
+        } catch(e) {
+          console.log('SCORM is not enabled:' + e);
+        }
+
+        if (scormWrapper) {
+          var scormWrapperInstance = scormWrapper.getInstance();
+          if (scormWrapperInstance.lmsConnected && !scormWrapperInstance.finishCalled) {
+            scormWrapperInstance.finish();
+          }
+        }
+      }
+
+      if (this.model.get('_close')._button._closeViaLMSFinish) return;
+
     	top.window.close();
     },
 

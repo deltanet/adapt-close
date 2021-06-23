@@ -28,7 +28,8 @@ define([
       });
 
       if (this.closeConfig.browserPromptIfIncomplete || this.closeConfig.browserPromptIfComplete) {
-  			$(window).on('beforeunload', _.partial(onBeforeUnload, this.closeConfig));
+        $(window).off('beforeunload');// stop spoor from handling beforeunload - if it handles the event first, LMSFinish will get called regardless of what the user selects in the prompt
+        $(window).on('beforeunload.close', _.partial(this.onBeforeUnload, this.closeConfig));
   		}
     },
 
@@ -38,6 +39,8 @@ define([
         'navigationView:postRender': this.renderNavigationView,
         'componentView:postRender': this.onComponentReady
       });
+
+      $(window).off('beforeunload.close');
 
       this.stopListening(Adapt.config, 'change:_activeLanguage', this.onLangChange);
     },

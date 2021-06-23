@@ -5,7 +5,7 @@
   "globals": {
     "closeButton": {
       "type": "string",
-      "default": "Select here to close the window.",
+      "default": "Select here to close the module.",
       "title": "Close button",
       "inputType": "Text",
       "translatable": true
@@ -20,7 +20,7 @@
           "properties": {
             "_close": {
               "type": "object",
-              "legend": "Close Button",
+              "legend": "Close",
               "properties": {
                 "_isEnabled": {
                   "type":"boolean",
@@ -33,7 +33,7 @@
                 },
                 "_button": {
                   "type": "object",
-                  "title": "Navigation bar button",
+                  "legend": "Navigation button",
                   "properties": {
                     "_isEnabled": {
                       "type": "boolean",
@@ -43,6 +43,24 @@
                       "inputType": "Checkbox",
                       "validators": [],
                       "help": "Adds a close button to the navigation bar if enabled."
+                    },
+                    "_sendLMSFinish": {
+                      "type":"boolean",
+                      "required": false,
+                      "default": false,
+                      "title": "Send LMSFinish",
+                      "inputType": "Checkbox",
+                      "validators": [],
+                      "help": "Enables the SCORM 'finish' function to be sent to the LMS."
+                    },
+                    "_closeViaLMSFinish": {
+                      "type":"boolean",
+                      "required": false,
+                      "default": false,
+                      "title": "Close via LMSFinish",
+                      "inputType": "Checkbox",
+                      "validators": [],
+                      "help": "Enables closing the course via the SCORM 'finish' function rather than by closing the window - useful for LMS's that don't open the course in a new window or don't allow the course window to be closed via JavaScript."
                     },
                     "_notifyPromptIfIncomplete": {
                       "type": "object",
@@ -168,7 +186,7 @@
             "_close": {
               "type":"object",
               "required": false,
-              "legend": "Close Button",
+              "legend": "Close",
               "properties":{
                 "_isEnabled": {
                   "type":"boolean",
@@ -189,7 +207,26 @@
                 "_button": {
                   "type": "object",
                   "required": true,
+                  "legend": "Button",
                   "properties": {
+                    "_sendLMSFinish": {
+                      "type":"boolean",
+                      "required": false,
+                      "default": false,
+                      "title": "Send LMSFinish",
+                      "inputType": "Checkbox",
+                      "validators": [],
+                      "help": "Enables the SCORM 'finish' function to be sent to the LMS."
+                    },
+                    "_closeViaLMSFinish": {
+                      "type":"boolean",
+                      "required": false,
+                      "default": false,
+                      "title": "Close via LMSFinish",
+                      "inputType": "Checkbox",
+                      "validators": [],
+                      "help": "Enables closing the course via the SCORM 'finish' function rather than by closing the window - useful for LMS's that don't open the course in a new window or don't allow the course window to be closed via JavaScript."
+                    },
                     "title": {
                       "type": "string",
                       "required": false,
@@ -204,6 +241,7 @@
                 "_tracking": {
                   "type": "object",
                   "required": false,
+                  "legend": "Tracking",
                   "properties": {
                     "_requireCourseCompleted": {
                       "type":"boolean",
@@ -236,7 +274,7 @@
                 },
                 "_notifyPrompt": {
                   "type": "object",
-                  "title": "Notify prompt",
+                  "legend": "Notify prompt",
                   "properties": {
                     "_isEnabled": {
                       "type": "boolean",
